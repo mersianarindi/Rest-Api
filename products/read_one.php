@@ -1,34 +1,41 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET");
-header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-
+include_once '../config/cors.php';
 include_once '../config/database.php';
 include_once '../objects/product.php';
 
 $database = new Database();
 $db = $database->getConnection();
+
 $product = new Product($db);
 
-$product->id = isset($_GET['id']) ? $_GET['id'] : die();
+// ambil id dari URL
+$product->id = $_GET['id'] ?? 0;
 
-if($product->readOne()) {
-    $product_arr = array(
-        "id" => $product->id,
-        "name" => $product->name,
-        "description" => $product->description,
-        "price" => $product->price,
-        "imageUrl" => $product->image_url,
-        "calories" => $product->calories,
-        "ingredients" => $product->ingredients
-    );
-    
+// cek data
+if ($product->read_one()) {
+
     http_response_code(200);
-    echo json_encode($product_arr);
+
+    echo json_encode([
+        "status" => "success",
+        "data" => [
+            "id" => $product->id,
+            "name" => $product->name,
+            "description" => $product->description,
+            "price" => $product->price,
+            "image_url" => $product->image_url,
+            "calories" => $product->calories,
+            "ingredients" => $product->ingredients
+        ]
+    ]);
+
 } else {
+
     http_response_code(404);
-    echo json_encode(array("message" => "Product does not exist."));
+
+    echo json_encode([
+        "status" => "error",
+        "message" => "data_not_found"
+    ]);
 }
 ?>
